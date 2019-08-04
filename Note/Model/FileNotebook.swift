@@ -44,7 +44,7 @@ class FileNotebook: FileNotebookProtocol {
         saveNotes()
     }
     
-    private func saveNotes() {
+    public func saveNotes() {
         var dictionary = [String: Dictionary<String, Any>]()
         for i in 0..<notes.count {
             dictionary["\(i)"] = notes[i].json
@@ -62,7 +62,7 @@ class FileNotebook: FileNotebookProtocol {
         }
     }
     
-    private func loadNotes() {
+    public func loadNotes() {
         notes = []
         
         if FileManager.default.fileExists(atPath: urlJSON.path) {

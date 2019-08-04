@@ -22,6 +22,16 @@ class AddNoteViewController: UIViewController,  UIScrollViewDelegate, UITextFiel
     var chosenColour: ChosenColour = .white
     var noteToEdit: Note?
     
+    private let fileNotebook = FileNotebook()
+    private let reuseId = "reuseId"
+    private let segueName = "editNote"
+    private(set) var currentIndex = -1
+    
+    let backendQueue = OperationQueue()
+    let dbQueue = OperationQueue()
+    let commonQueue = OperationQueue()
+    private(set) var updateUI = BlockOperation()
+    
     var chooseWhiteColour: UITapGestureRecognizer!
     var chooseRedColour: UITapGestureRecognizer!
     var chooseGreenColour: UITapGestureRecognizer!
@@ -49,7 +59,18 @@ class AddNoteViewController: UIViewController,  UIScrollViewDelegate, UITextFiel
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setUI()
+        let loadNoteOperation = LoadNotesOperation(
+            notebook: fileNotebook,
+            backendQueue: backendQueue,
+            dbQueue: dbQueue,
+            updateUI: updateUI
+        )
+        commonQueue.addOperation(loadNoteOperation)
+        updateUI = BlockOperation {
+            self.setUI()
+        }
+        
+  
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -100,9 +121,24 @@ class AddNoteViewController: UIViewController,  UIScrollViewDelegate, UITextFiel
     }
     @IBAction func saveButton(_ sender: Any) {
         if let note = constructNote() {
-            FileNotebook.shared.add(note)
+           // FileNotebook.shared.add(note)
+            let saveNoteOperation = SaveNoteOperation(
+             
+                note: note,
+                notebook: fileNotebook,
+                backendQueue: backendQueue,
+                dbQueue: dbQueue
+               
+                
+            )
+            saveNoteOperation.completionBlock = {
+                DispatchQueue.main.async {
+                   // self.tableView.reloadData()
+                }
+            }
+            commonQueue.addOperation(saveNoteOperation)
         }
-     
+        
         performSegue(withIdentifier: "SaveChangedNoteSegue", sender: self)
     }
     

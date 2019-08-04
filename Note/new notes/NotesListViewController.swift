@@ -12,6 +12,15 @@ class NotesListViewController: UIViewController, UITableViewDelegate, UITableVie
     
     @IBOutlet weak var listView: UITableView!
     @IBOutlet weak var addButton: UIBarButtonItem!
+    private let fileNotebook = FileNotebook()
+    private let reuseId = "reuseId"
+    private let segueName = "editNote"
+    private(set) var currentIndex = -1
+    
+    let backendQueue = OperationQueue()
+    let dbQueue = OperationQueue()
+    let commonQueue = OperationQueue()
+    private(set) var updateUI = BlockOperation()
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
          return FileNotebook.shared.notes.count
@@ -32,7 +41,18 @@ class NotesListViewController: UIViewController, UITableViewDelegate, UITableVie
         listView.isEditing = !listView.isEditing
     }
     override func viewWillAppear(_ animated: Bool) {
-        listView.reloadData()
+       
+        
+        let loadNoteOperation = LoadNotesOperation(
+            notebook: fileNotebook,
+            backendQueue: backendQueue,
+            dbQueue: dbQueue,
+            updateUI: updateUI
+        )
+        commonQueue.addOperation(loadNoteOperation)
+        updateUI = BlockOperation {
+            self.listView.reloadData()
+        }
     }
 
     override func viewDidLoad() {
@@ -74,3 +94,5 @@ class NotesListViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
 }
+
+
